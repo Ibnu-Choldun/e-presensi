@@ -1,3 +1,5 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <?php
 global $judul;
 require_once('../../config.php');

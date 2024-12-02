@@ -23,7 +23,7 @@ $data_presensi = mysqli_fetch_assoc($result_presensi);
 $total_presensi = $data_presensi['total_presensi'];
 
 // Query untuk mendapatkan jumlah absensi hari ini
-$query_absensi = "SELECT COUNT(*) as total_absensi FROM absensi WHERE tanggal = '$tanggal_hari_ini'";
+$query_absensi = "SELECT COUNT(*) as total_absensi FROM absensi WHERE tanggal_mulai <= '$tanggal_hari_ini' AND tanggal_selesai >= '$tanggal_hari_ini'";
 $result_absensi = mysqli_query($connection, $query_absensi);
 $data_absensi = mysqli_fetch_assoc($result_absensi);
 $total_absensi = $data_absensi['total_absensi'];
@@ -108,6 +108,63 @@ $total_absensi = $data_absensi['total_absensi'];
             </div>
           </div>
         </div>
+
+        <div class="col-12">
+          <div class="d-flex justify-content-center">
+            <canvas id="dashboardChart" style="width: 100%; max-width: 1200px; height: 300px;"></canvas>
+            <script>
+              const ctx = document.getElementById('dashboardChart').getContext('2d');
+              const dashboardChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                  labels: ['Karyawan Aktif', 'Presensi Hari Ini', 'Absensi Hari Ini'],
+                  datasets: [{
+                    label: 'Data Kepegawaian',
+                    data: [
+                      <?= $karyawan_aktif ?>, 
+                      <?= $total_presensi ?>, 
+                      <?= $total_absensi ?>
+                    ],
+                    backgroundColor: [
+                      'rgba(75, 192, 192, 0.6)',
+                      'rgba(54, 162, 235, 0.6)',
+                      'rgba(255, 99, 132, 0.6)'
+                    ],
+                    borderColor: [
+                      'rgba(75, 192, 192, 1)',
+                      'rgba(54, 162, 235, 1)',
+                      'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      ticks: {
+                        stepSize: 1
+                      }
+                    }
+                  },
+                  layout: {
+                    padding: 10
+                  },
+                  plugins: {
+                    legend: {
+                      display: true,
+                      position: 'top'
+                    }
+                  }
+                }
+              });
+            </script>
+          </div>
+        </div>
+
+
 
 <?php include('../layouts/footer.php');?>
         

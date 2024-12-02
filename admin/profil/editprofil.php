@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="card-body">
 
             <?php if(isset($message)) { echo "<p style='color:red;'>$message</p>"; } ?>
-            <form action="editprofil.php" method="post" enctype="multipart/form-data">
+            <form action="editprofil.php" method="post" enctype="multipart/form-data" onsubmit="return validateForm()">
 
                 <div class="mb-3">
                     <label>NIK</label>
@@ -198,5 +198,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </div>
 </div>
+
+<script>
+function validateForm() {
+    const nama = document.querySelector('input[name="nama"]').value;
+    const no_hp = document.querySelector('input[name="no_hp"]').value;
+
+    // Validasi kolom Nama hanya huruf
+    const regexNama = /^[a-zA-Z\s]+$/;
+    if (!regexNama.test(nama)) {
+        alert('Nama hanya boleh berisi huruf dan spasi.');
+        return false;
+    }
+
+    // Validasi kolom No HP hanya angka
+    const regexNoHp = /^[0-9]+$/;
+    if (!regexNoHp.test(no_hp)) {
+        alert('No HP hanya boleh berisi angka.');
+        return false;
+    }
+
+    return true;
+}
+</script>
 
 <?php include('../layouts/footer.php') ?>

@@ -13,10 +13,16 @@ $judul= "Pengajuan Absensi";
 include('../layouts/header.php');
 include_once("../../config.php");
 
+$id = $_SESSION['id'];
+$result = mysqli_query($connection, "SELECT nama FROM karyawan WHERE id = '$id'");
+$row = mysqli_fetch_assoc($result);
+$nama_karyawan = $row['nama'];
+
 if(isset($_POST['submit']))
 {
     $id_karyawan = $_POST['id_karyawan'];
-    $tanggal = $_POST['tanggal'];
+    $tanggal_mulai = $_POST['tanggal_mulai'];
+    $tanggal_selesai = $_POST['tanggal_selesai'];
     $keterangan = $_POST['keterangan'];
     $deskripsi = $_POST['deskripsi'];
     $status_pengajuan = 'PENDING';
@@ -26,8 +32,14 @@ if(isset($_POST['submit']))
     if(empty($keterangan)) {
         $message .= "Keterangan harus diisi.<br>";
     }
-    if(empty($tanggal)) {
-        $message .= "Tanggal harus diisi.<br>";
+    if(empty($tanggal_mulai)) {
+        $message .= "Tanggal mulai harus diisi.<br>";
+    }
+    if(empty($tanggal_selesai)) {
+        $message .= "Tanggal selesai harus diisi.<br>";
+    }
+    if (!empty($tanggal_mulai) && !empty($tanggal_selesai) && $tanggal_mulai > $tanggal_selesai) {
+        $message .= "Tanggal mulai tidak boleh lebih dari tanggal selesai.<br>";
     }
     if(empty($deskripsi)) {
         $message .= "Deskripsi harus diisi.<br>";
@@ -64,8 +76,8 @@ if(isset($_POST['submit']))
     if(!empty($message)) {
         $_SESSION['validate'] = $message;
     } else {
-        $result = mysqli_query($connection, "INSERT INTO absensi(id_karyawan, keterangan, deskripsi, tanggal, status_pengajuan, file)
-            VALUES('$id_karyawan', '$keterangan', '$deskripsi', '$tanggal', '$status_pengajuan', '$file_name')");
+        $result = mysqli_query($connection, "INSERT INTO absensi (id_karyawan, keterangan, deskripsi, tanggal_mulai, tanggal_selesai, status_pengajuan, file)
+        VALUES ('$id_karyawan', '$keterangan', '$deskripsi', '$tanggal_mulai', '$tanggal_selesai', '$status_pengajuan', '$file_name')");
 
         $_SESSION['success'] = 'Data berhasil disimpan';
         header("Location: absensi.php");
@@ -93,6 +105,11 @@ $result = mysqli_query($connection, "SELECT * FROM absensi WHERE id_karyawan = '
                     <?php endif; ?>
 
                     <div class="mb-3">
+                        <label for="">Nama Karyawan</label>
+                        <input type="text" class="form-control" value="<?= $nama_karyawan ?>" readonly>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="">Keterangan</label>
                         <select name="keterangan" class="form-control">
                             <option value="">----Pilih Keterangan-----</option>
@@ -117,9 +134,15 @@ $result = mysqli_query($connection, "SELECT * FROM absensi WHERE id_karyawan = '
                     </div>
 
                     <div class="mb-3">
-                        <label for="">Tanggal</label>
-                        <input type="date" name="tanggal" class="form-control" value="<?= isset($_POST['tanggal']) ? $_POST['tanggal'] : '' ?>">
+                        <label for="">Tanggal Mulai</label>
+                        <input type="date" name="tanggal_mulai" class="form-control" value="<?= isset($_POST['tanggal_mulai']) ? $_POST['tanggal_mulai'] : '' ?>">
                     </div>
+
+                    <div class="mb-3">
+                        <label for="">Tanggal Selesai</label>
+                        <input type="date" name="tanggal_selesai" class="form-control" value="<?= isset($_POST['tanggal_selesai']) ? $_POST['tanggal_selesai'] : '' ?>">
+                    </div>
+
 
                     <div class="mb-3">
                         <label for="">Surat Keterangan</label>

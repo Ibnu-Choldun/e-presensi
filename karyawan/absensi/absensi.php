@@ -14,7 +14,13 @@ include('../layouts/header.php');
 include_once("../../config.php");
 
 $id = $_SESSION['id'];
-$result = mysqli_query($connection, "SELECT * FROM absensi WHERE id_karyawan = '$id' ORDER BY id DESC");
+$result = mysqli_query($connection, "
+    SELECT a.*, k.nama 
+    FROM absensi a
+    JOIN karyawan k ON a.id_karyawan = k.id
+    WHERE a.id_karyawan = '$id'
+    ORDER BY a.id DESC
+");
 ?>
 
 <!-- Page body -->
@@ -28,7 +34,9 @@ $result = mysqli_query($connection, "SELECT * FROM absensi WHERE id_karyawan = '
   <table class="table-bordered">
     <tr class="text-center">
         <th>NO</th>
-        <th>Tanggal</th>
+        <th>Nama</th>
+        <th>Tgl. Mulai</th>
+        <th>Tgl. Selesai</th>
         <th>Keterangan</th>
         <th>Deskripsi</th>
         <th>File</th>
@@ -47,7 +55,9 @@ $result = mysqli_query($connection, "SELECT * FROM absensi WHERE id_karyawan = '
 
             <tr class="text-center">
                 <td><?= $no++; ?></td>
-                <td><?= date('d F Y', strtotime($row['tanggal'])) ?></td>
+                <td><?= $row['nama']; ?></td>
+                <td><?= date('d F Y', strtotime($row['tanggal_mulai'])) ?></td>
+                <td><?= date('d F Y', strtotime($row['tanggal_selesai'])) ?></td>
                 <td><?= $row['keterangan'] ?></td>
                 <td><?= $row['deskripsi'] ?></td>
 

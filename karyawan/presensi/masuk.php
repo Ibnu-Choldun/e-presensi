@@ -90,64 +90,65 @@ if(isset($_POST['button_masuk']))
     let jam_masuk = document.getElementById('jam_masuk').value;
     let lokasi_masuk = document.getElementById('lokasi_masuk').value;
 
-    document.getElementById('take_foto').addEventListener('click', function(){
-        Webcam.snap(function(data_uri) {
-            if (lokasi_masuk.value !== "") {
-                var xhttp = new XMLHttpRequest();
-                xhttp.onreadystatechange = function() {
-                    if (xhttp.readyState == 4 && xhttp.status == 200) {
-                        document.getElementById('my_result').innerHTML = '<img src="'+data_uri+'"/>';
-                        window.location.href = "../beranda/beranda.php";
-                    }
-                };
-                xhttp.open("POST", "masuk_aksi.php", true);
-                xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-                xhttp.send(
-                    "foto=" + encodeURIComponent(data_uri) +
-                    "&id=" + id +
-                    "&tanggal_masuk=" + tanggal_masuk +
-                    "&jam_masuk=" + jam_masuk +
-                    "&lokasi_masuk=" + encodeURIComponent(lokasi_masuk)
-                );
-            } else {
-                alert("Gagal mendapatkan lokasi, presensi tidak bisa dilakukan");
-            }
-        });
-    });
+    // Office coordinates
+    const officeLat = -2.9902725;
+    const officeLng = 104.7408598;
 
-    // Map and location handling
-    if(navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
-    }
+    let userLat, userLng;
 
-    function successCallback(position) {
-        let userLat = position.coords.latitude;
-        let userLng = position.coords.longitude;
-        lokasi_masuk.value = userLat + "," + userLng;
+    document.getElementById('take_foto').addEventListener('click', function() {
+        if (!userLat || !userLng) {
+            Swal.fire({
+                title: 'Gagal',
+                text: 'Lokasi Anda tidak terdeteksi.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
 
-        // Office coordinates
-        let officeLat = -3.000658851290089;
-        let officeLng = 104.6169372153455;
+        const distance = calculateDistance(userLat, userLng, officeLat, officeLng);
 
-        // Calculate distance using Haversine formula
-        let distance = calculateDistance(userLat, userLng, officeLat, officeLng);
-
-        // Check if the user is within 10 meters of the office
-        if(distance > 10) {
+        if (distance > 10) {
             Swal.fire({
                 title: 'Presensi Gagal',
                 text: 'Anda berada lebih dari 10 meter dari lokasi kantor.',
                 icon: 'error',
                 confirmButtonText: 'OK'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = "../beranda/beranda.php";
-                }
             });
-
-            document.getElementById('take_foto').disabled = true;
+            return;
         }
 
+        Webcam.snap(function(data_uri) {
+            const lokasi_masuk = userLat + ',' + userLng;
+
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (xhttp.readyState == 4 && xhttp.status == 200) {
+                    document.getElementById('my_result').innerHTML = '<img src="' + data_uri + '"/>';
+                    window.location.href = "../beranda/beranda.php";
+                }
+            };
+            xhttp.open("POST", "masuk_aksi.php", true);
+            xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhttp.send(
+                "foto=" + encodeURIComponent(data_uri) +
+                "&id=" + id +
+                "&tanggal_masuk=" + tanggal_masuk +
+                "&jam_masuk=" + jam_masuk +
+                "&lokasi_masuk=" + encodeURIComponent(lokasi_masuk)
+            );
+        });
+    });
+
+    // Map and location handling
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+    }
+
+    function successCallback(position) {
+        userLat = position.coords.latitude;
+        userLng = position.coords.longitude;
 
         // Display map with user's current location
         var map = L.map('map').setView([userLat, userLng], 13);
@@ -163,20 +164,25 @@ if(isset($_POST['button_masuk']))
     }
 
     function errorCallback() {
-        alert('Gagal mendapatkan lokasi');
+        Swal.fire({
+            title: 'Gagal',
+            text: 'Gagal mendapatkan lokasi Anda.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
     }
 
     function calculateDistance(lat1, lon1, lat2, lon2) {
         const R = 6371e3; // Earth's radius in meters
-        const φ1 = lat1 * Math.PI/180; // Convert to radians
-        const φ2 = lat2 * Math.PI/180;
-        const Δφ = (lat2-lat1) * Math.PI/180;
-        const Δλ = (lon2-lon1) * Math.PI/180;
+        const φ1 = lat1 * Math.PI / 180; // Convert to radians
+        const φ2 = lat2 * Math.PI / 180;
+        const Δφ = (lat2 - lat1) * Math.PI / 180;
+        const Δλ = (lon2 - lon1) * Math.PI / 180;
 
-        const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+        const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
                   Math.cos(φ1) * Math.cos(φ2) *
-                  Math.sin(Δλ/2) * Math.sin(Δλ/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                  Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
         const distance = R * c; // Distance in meters
         return distance;

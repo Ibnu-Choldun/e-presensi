@@ -23,13 +23,25 @@ if(isset($_POST['update'])) {
 }
 
 $id = $_GET['id'];
-$result = mysqli_query($connection, "SELECT*FROM absensi WHERE id=$id");
+$result = mysqli_query($connection, "
+    SELECT absensi.*, karyawan.nama AS nama_karyawan 
+    FROM absensi 
+    JOIN karyawan ON absensi.id_karyawan = karyawan.id 
+    WHERE absensi.id = '$id'
+");
 
-$result = mysqli_query($connection, "SELECT * FROM absensi WHERE id = '$id'");
+$result = mysqli_query($connection, "
+    SELECT absensi.*, karyawan.nama AS nama_karyawan 
+    FROM absensi 
+    JOIN karyawan ON absensi.id_karyawan = karyawan.id 
+    WHERE absensi.id = '$id'
+");
 while($row = mysqli_fetch_array($result))
 {
+    $nama_karyawan = $row['nama_karyawan'];
     $keterangan = $row['keterangan'];
-    $tanggal    = $row['tanggal'];
+    $tanggal_mulai    = $row['tanggal_mulai'];
+    $tanggal_selesai  = $row['tanggal_selesai'];
     $status_pengajuan = $row['status_pengajuan'];
 }
 ?>
@@ -42,7 +54,17 @@ while($row = mysqli_fetch_array($result))
             <form action="" method="POST">
 
                 <div class="mb-3">
-                    <label for="">Tanggal</label>
+                    <label for="">Nama</label>
+                    <input type="text" name="nama_karyawan" class="form-control" value="<?= $nama_karyawan; ?>" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label for="">Tanggal Mulai</label>
+                    <input type="date" name="tanggal_mulai" class="form-control" value="<?= $tanggal_mulai; ?>" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label for="">Tanggal Selesai</label>
                     <input type="date" name="tanggal" class="form-control" value="<?= $tanggal; ?>" readonly>
                 </div>
 
