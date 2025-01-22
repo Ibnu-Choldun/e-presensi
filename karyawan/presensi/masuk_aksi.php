@@ -15,6 +15,20 @@ $tanggal_masuk = $_POST['tanggal_masuk'];
 $jam_masuk = $_POST['jam_masuk'];
 $lokasi_masuk = $_POST['lokasi_masuk'];
 
+// Cek apakah tanggal masuk ada di dalam absensi yang disetujui
+$query = "SELECT * FROM absensi 
+          WHERE id_karyawan = '$id_karyawan' 
+          AND status_pengajuan = 'approved' 
+          AND '$tanggal_masuk' BETWEEN tanggal_mulai AND tanggal_selesai";
+$result = mysqli_query($connection, $query);
+
+if (mysqli_num_rows($result) > 0) {
+    // Jika ditemukan absensi yang disetujui pada tanggal tersebut
+    $_SESSION['gagal'] = "Anda tidak dapat presensi pada tanggal ini karena ada absensi yang telah disetujui.";
+    header("Location: ../masuk.php");
+    exit();
+}
+
 // Tentukan batas waktu terlambat
 $batas_waktu_terlambat = "08:00:00";
 

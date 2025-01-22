@@ -109,7 +109,7 @@ if(isset($_POST['button_masuk']))
 
         const distance = calculateDistance(userLat, userLng, officeLat, officeLng);
 
-        if (distance > 10) {
+        if (distance > 10000) {
             Swal.fire({
                 title: 'Presensi Gagal',
                 text: 'Anda berada lebih dari 10 meter dari lokasi kantor.',

@@ -78,17 +78,42 @@ $lokasi_pulang = '';
         jpeg_quality: 90
     });
     Webcam.attach('#my_camera');
-    document.getElementById('take_foto_pulang').addEventListener('click', function(){
-        Webcam.snap(function(data_uri) {
-            let id = document.getElementById('id').value;
-            let tanggal_pulang = document.getElementById('tanggal_pulang').value;
-            let jam_pulang = document.getElementById('jam_pulang').value;
-            let lokasi_pulang = document.getElementById('lokasi_pulang').value;
+
+    const officeLat = -2.9902725; // Latitude kantor
+    const officeLng = 104.7408598; // Longitude kantor
+
+    let userLat, userLng;
+
+    document.getElementById('take_foto_pulang').addEventListener('click', function () {
+        if (!userLat || !userLng) {
+            Swal.fire({
+                title: 'Gagal',
+                text: 'Lokasi Anda tidak terdeteksi.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+
+        const distance = calculateDistance(userLat, userLng, officeLat, officeLng);
+
+        if (distance > 10) {
+            Swal.fire({
+                title: 'Presensi Gagal',
+                text: 'Anda berada lebih dari 10 meter dari lokasi kantor.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+
+        Webcam.snap(function (data_uri) {
+            const lokasi_pulang = userLat + ',' + userLng;
 
             var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
-                document.getElementById('my_result').innerHTML = '<img src="'+data_uri+'"/>';
+            xhttp.onreadystatechange = function () {
                 if (xhttp.readyState == 4 && xhttp.status == 200) {
+                    document.getElementById('my_result').innerHTML = '<img src="' + data_uri + '"/>';
                     window.location.href = "../beranda/beranda.php";
                 }
             };
@@ -96,33 +121,56 @@ $lokasi_pulang = '';
             xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
             xhttp.send(
                 "foto=" + encodeURIComponent(data_uri) +
-                "&id=" + id +
-                "&tanggal_pulang=" + tanggal_pulang +
-                "&jam_pulang=" + jam_pulang +
+                "&id=" + document.getElementById('id').value +
+                "&tanggal_pulang=" + document.getElementById('tanggal_pulang').value +
+                "&jam_pulang=" + document.getElementById('jam_pulang').value +
                 "&lokasi_pulang=" + encodeURIComponent(lokasi_pulang)
             );
         });
     });
-    if(navigator.geolocation) {
+
+    if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
     }
 
     function successCallback(position) {
-        let latitude = position.coords.latitude;
-        let longitude = position.coords.longitude;
-        document.getElementById('lokasi_pulang').value = latitude + "," + longitude;
+        userLat = position.coords.latitude;
+        userLng = position.coords.longitude;
+        document.getElementById('lokasi_pulang').value = userLat + ',' + userLng;
 
-        var map = L.map('map').setView([latitude, longitude], 13);
+        var map = L.map('map').setView([userLat, userLng], 13);
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
 
-        var marker = L.marker([latitude, longitude]).addTo(map);
+        var marker = L.marker([userLat, userLng]).addTo(map)
+            .bindPopup('<b>Lokasi Anda</b>')
+            .openPopup();
     }
 
     function errorCallback(error) {
-        alert('Gagal mendapatkan lokasi: ' + error.message);
+        Swal.fire({
+            title: 'Gagal',
+            text: 'Gagal mendapatkan lokasi: ' + error.message,
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371e3; // Radius Bumi dalam meter
+        const φ1 = lat1 * Math.PI / 180;
+        const φ2 = lat2 * Math.PI / 180;
+        const Δφ = (lat2 - lat1) * Math.PI / 180;
+        const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+        const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c; // Jarak dalam meter
     }
 </script>
 
