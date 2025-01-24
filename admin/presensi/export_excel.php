@@ -124,6 +124,39 @@ if (isset($_GET['export']) && $_GET['export'] == 'excel') {
                 $jam_terlambat . ' Jam ' . $menit_terlambat . ' Menit'
             ], "\t");
         }
+        
+        // Kalkulasi total jam terlambat untuk karyawan tertentu
+        if (!empty($karyawan)) {
+            $total_jam_terlambat = 0;
+            $total_menit_terlambat = 0;
+
+            mysqli_data_seek($result, 0); // Reset pointer hasil query
+            while ($rekap = mysqli_fetch_array($result)) {
+                $timestamp_msk = strtotime($rekap['tanggal_masuk'] . ' ' . $rekap['jam_masuk']);
+                $timestamp_batas_terlambat = strtotime($rekap['tanggal_masuk'] . ' ' . $batas_waktu_terlambat);
+
+                if ($timestamp_msk > $timestamp_batas_terlambat) {
+                    $selisih_terlambat = $timestamp_msk - $timestamp_batas_terlambat;
+
+                    $jam_terlambat = floor($selisih_terlambat / 3600);
+                    $selisih_terlambat -= $jam_terlambat * 3600;
+                    $menit_terlambat = floor($selisih_terlambat / 60);
+
+                    $total_jam_terlambat += $jam_terlambat;
+                    $total_menit_terlambat += $menit_terlambat;
+                }
+            }
+
+            // Konversi menit menjadi jam jika total menit >= 60
+            $total_jam_terlambat += floor($total_menit_terlambat / 60);
+            $total_menit_terlambat = $total_menit_terlambat % 60;
+
+            // Menambahkan baris ringkasan total jam terlambat ke file Excel
+            fputcsv($output, [], "\t"); // Baris kosong untuk pemisah
+            fputcsv($output, ['Total Jam Terlambat Bulanan'], "\t");
+            fputcsv($output, [$total_jam_terlambat . ' Jam ' . $total_menit_terlambat . ' Menit'
+            ], "\t");
+        }
     }
 
     fclose($output);

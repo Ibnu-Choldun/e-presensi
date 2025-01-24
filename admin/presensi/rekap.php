@@ -156,6 +156,11 @@ if(empty($_GET['dari_tanggal']) && empty($_GET['bulan']) && empty($_GET['tahun']
         <span><?= $display_date ?></span>
     <?php endif; ?>
 
+    <?php 
+    $total_jam_terlambat = 0;
+    $total_menit_terlambat = 0;
+    ?>
+
     <table class="table table-bordered mt-2 text-center">
         <tr>
             <th>NO</th>
@@ -200,6 +205,9 @@ if(empty($_GET['dari_tanggal']) && empty($_GET['bulan']) && empty($_GET['tahun']
                     $jam_terlambat = floor($selisih_terlambat / 3600);
                     $selisih_terlambat -= $jam_terlambat * 3600;
                     $menit_terlambat = floor($selisih_terlambat / 60);
+
+                    $total_jam_terlambat += $jam_terlambat;
+                    $total_menit_terlambat += $menit_terlambat;
                 }
             ?>
             <tr>
@@ -224,6 +232,14 @@ if(empty($_GET['dari_tanggal']) && empty($_GET['bulan']) && empty($_GET['tahun']
         <?php } ?>
 
     </table>
+
+    <?php if (!empty($karyawan) && $result && mysqli_num_rows($result) > 0): ?>
+    <div class="alert alert-info mt-2">
+        Total Jam Terlambat untuk karyawan "<strong><?= $karyawan ?></strong>" selama periode ini: 
+        <strong><?= $total_jam_terlambat ?> Jam <?= $total_menit_terlambat ?> Menit</strong>.
+    </div>
+<?php endif; ?>
+
 </div>
 </div>
 

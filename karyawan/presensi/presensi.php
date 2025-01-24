@@ -153,7 +153,11 @@ if(empty($_GET['dari_tanggal']) && empty($_GET['bulan']) && empty($_GET['tahun']
             <th>Total Jam Terlambat</th>
         </tr>
 
-        <?php if($result && mysqli_num_rows($result) === 0) { ?>
+        <?php 
+        $total_terlambat_jam = 0;
+        $total_terlambat_menit = 0;
+
+        if($result && mysqli_num_rows($result) === 0) { ?>
             <tr>
                 <td colspan="7">Tidak ada data</td>
             </tr>
@@ -186,6 +190,16 @@ if(empty($_GET['dari_tanggal']) && empty($_GET['bulan']) && empty($_GET['tahun']
                     $jam_terlambat = floor($selisih_terlambat / 3600);
                     $selisih_terlambat -= $jam_terlambat * 3600;
                     $menit_terlambat = floor($selisih_terlambat / 60);
+
+                    // Tambahkan ke total jam terlambat
+                    $total_terlambat_jam += $jam_terlambat;
+                    $total_terlambat_menit += $menit_terlambat;
+                }
+
+                // Jika total menit terlambat mencapai 60, tambahkan ke total jam terlambat
+                while ($total_terlambat_menit >= 60) {
+                    $total_terlambat_jam += 1;
+                    $total_terlambat_menit -= 60;
                 }
             ?>
             <tr>
@@ -209,6 +223,13 @@ if(empty($_GET['dari_tanggal']) && empty($_GET['bulan']) && empty($_GET['tahun']
         <?php } ?>
 
     </table>
+
+    <!-- Total Jam Terlambat -->
+    <div class="mt-2">
+        <strong>Total Jam Terlambat Bulanan: </strong>
+        <?= $total_terlambat_jam . ' Jam ' . $total_terlambat_menit . ' Menit' ?>
+    </div>
+
 </div>
 </div>
 
